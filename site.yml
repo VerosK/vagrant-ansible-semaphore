@@ -1,7 +1,23 @@
 ---
-- name: Setup epel
+- name: Setup EPEL
   hosts: all
   tags: common
   tasks:
-    - yum: name=epel-release state=present
+    - name: Install EPEL
+      yum:
+          name: epel-release
+          state: present
 
+
+- name: Setup sempahore requisities
+  hosts: semaphore
+  tags: semaphore
+  pre_tasks:
+    - name: Install Ansible
+      action: '{{ ansible_pkg_mgr }}'
+      args:
+          name: ansible
+          state: present
+  roles:
+    - role: geerlingguy.mysql
+    - role: VerosK.nginx
