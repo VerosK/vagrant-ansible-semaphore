@@ -1,0 +1,7 @@
+---
+- name: Setup epel
+  hosts: all
+  tags: common
+  tasks:
+    - yum: name=epel-release state=present
+
