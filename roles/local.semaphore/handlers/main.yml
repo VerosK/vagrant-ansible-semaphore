@@ -1,0 +1,7 @@
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+
+- name: restart semaphore
+  service:
+      name: '{{ semaphore_systemd_unit_name }}'
+      state: restarted

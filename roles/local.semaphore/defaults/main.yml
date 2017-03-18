@@ -1,0 +1,65 @@
+semaphore_db_name: semaphore
+semaphore_db_user: semaphore
+semaphore_db_password: nbusr123
+semaphore_db_host: 127.0.0.1
+
+semaphore_user: 'semaphore'
+semaphore_home: /var/lib/semaphore
+
+
+semaphore_architecture: 'linux_amd64'
+semaphore_version: 'v2.2.0'
+semaphore_src_url: 'https://github.com/ansible-semaphore/semaphore/releases/download/{{ semaphore_version }}/semaphore_{{ semaphore_architecture }}'
+semaphore_bin: /usr/local/bin/ansible-semaphore
+
+semaphore_listen: ''
+semaphore_port: 3000
+
+semaphore_inventory_dir: '/tmp/semaphore'
+
+# change this !
+semaphore_cookie_hash: '0EXw1O7gkcnjLvj+b05w3fJBUELn9EB/qsOHNphAoAI='
+semaphore_cookie_encryption: "hsHGFIrRHnka9dkl2ZQEwM+KyWoYBJLdaVWzFEMYjAU="
+semaphore_overwrite_config: false
+
+# no bugsnag employed
+semaphore_bugsnag_key: ''
+
+semaphore_sysconfig:
+        name: /etc/sysconfig/semaphore
+        content: |
+            # Run semaphore on port
+            PORT={{ semaphore_port }}
+
+semaphore_config_dir: /etc/semaphore
+semaphore_config_file: /etc/semaphore/config.json
+
+semaphore_config_data:
+  mysql:
+      host: '{{ semaphore_db_host }}:3306'
+      user: '{{ semaphore_db_user }}'
+      pass: '{{ semaphore_db_password }}'
+      name: '{{ semaphore_db_name }}'
+  port: '{{ semaphore_listen }}:{{ semaphore_port }}'
+  tmp: '{{ semaphore_inventory_dir }}'
+  bugsnag_key: '{{ semaphore_bugsnag_key }}'
+  cookie_hash: '{{ semaphore_cookie_hash }}'
+  cookie_encryption: '{{ semaphore_cookie_encryption }}'
+
+semaphore_systemd_unit_name: ansible-semaphore
+semaphore_systemd_unit:
+    name: /etc/systemd/system/{{ semaphore_systemd_unit_name }}.service
+    content: |
+        [Service]
+        EnvironmentFile={{ semaphore_sysconfig.name }}
+        User={{ semaphore_user }}
+        Type=simple
+
+        ExecStart={{ semaphore_bin }} -config {{ semaphore_config_file }}
+
+semaphore_gui_user: admin
+semaphore_gui_user_password: nbusr123
+
+# upload semaphore
+semaphore_upload_db: ~
+#semaphore_upload_db: files

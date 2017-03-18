@@ -1,3 +1,11 @@
+semaphore_port: 3030
+semaphore_overwrite_config: true
+# populate config
+semaphore_upload_db: "files/semaphore.sql"
+
+semaphore_user: 'semaphore'
+semaphore_home: /var/lib/semaphore
+
 nginx_dhparam_bits: 512
 
 nginx_sites:
@@ -8,7 +16,7 @@ nginx_sites:
 
     root_config: >
         location / {
-                proxy_pass http://127.0.0.1:3030/;
+                proxy_pass http://127.0.0.1:{{ semaphore_port }}/;
                 proxy_read_timeout 90;
                 proxy_set_header Host        $http_host;
                 proxy_set_header X-Forwarded-Proto "http";

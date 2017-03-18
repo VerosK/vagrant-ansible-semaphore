@@ -1,0 +1,97 @@
+- name: Install Semaphore prerequisites
+  action: '{{ ansible_pkg_mgr }}'
+  args:
+    name: git,ansible
+    state: present
+
+- name: Create semaphore DB
+  mysql_db:
+    name: '{{ semaphore_db_name }}'
+    state: present
+  register: _database_created
+
+- name: Upload semaphore database
+  copy:
+    src: '{{ semaphore_upload_db }}'
+    dest: /tmp/semaphore-db.sql
+  when: semaphore_upload_db|default(False)
+
+- name: Import sempahore database when required
+  mysql_db:
+    state: import
+    name: '{{ semaphore_db_name }}'
+    target: /tmp/semaphore-db.sql
+  when: _database_created.changed and semaphore_upload_db|default(False)
+
+- name: Create semaphore DB user
+  mysql_user:
+    name: '{{ semaphore_db_user }}'
+    password: '{{ semaphore_db_password }}'
+    priv: '{{ semaphore_db_name }}.*:ALL'
+    state: present
+
+- name: Create unix user
+  user:
+    name: '{{ semaphore_user }}'
+    home: '{{ semaphore_home }}'
+    system: true
+    state: present
+
+- name: Create semaphore sysconfig
+  copy:
+    content: '{{ semaphore_sysconfig.content }}'
+    dest: '{{ semaphore_sysconfig.name }}'
+    force: '{{ semaphore_sysconfig.overwrite|default(False) }}'
+
+- name: Create semaphore config dir
+  file:
+    name: '{{ semaphore_config_dir }}'
+    state: directory
+    owner: '{{ semaphore_user }}'
+    group: '{{ semaphore_user }}'
+    mode: 0700
+
+- name: Create semaphore config file
+  copy:
+    content: '{{  semaphore_config_data|to_nice_json }}'
+    dest: '{{ semaphore_config_file }}'
+    owner: '{{ semaphore_user }}'
+    group: '{{ semaphore_user }}'
+    mode: 0600
+  notify: restart semaphore
+
+- name: Craeate tmpdir
+  file:
+    dest: '{{ semaphore_inventory_dir }}'
+    state: directory
+    owner: '{{ semaphore_user }}'
+    group: '{{ semaphore_user }}'
+    mode: 0700
+
+- name: Craeate tmpdir recipe
+  copy:
+    content: "d {{ semaphore_inventory_dir }} 0700 {{ semaphore_user }} {{ semaphore_user }} -\n"
+    dest: "/etc/tmpfiles.d/ansible-semaphore.conf"
+
+- name: Create systemd unit
+  copy:
+    content: '{{ semaphore_systemd_unit.content }}'
+    dest: '{{ semaphore_systemd_unit.name }}'
+  notify:
+      - systemctl daemon-reload
+      - restart semaphore
+
+- name: Download semaphore from dark Interwebs
+  get_url:
+      url: '{{ semaphore_src_url }}'
+      dest: '{{ semaphore_bin }}'
+      owner: root
+      mode: 0711
+  notify: restart semaphore
+
+- name: Start semaphore
+  service:
+      name: '{{ semaphore_systemd_unit_name }}'
+      state: started
+      enabled: true
+

@@ -3,21 +3,26 @@
   hosts: all
   tags: common
   tasks:
+    - name: Disable SELinux for the demo
+      selinux:
+        policy: targeted
+        state: permissive
+
     - name: Install EPEL
       yum:
           name: epel-release
           state: present
 
+    - name: Add authorized key
+      authorized_key:
+        user: root
+        key: '{{ demo_ssh_key_public }}'
+        state: present
 
-- name: Setup sempahore requisities
+- name: Setup Ansible semaphore with requisities
   hosts: semaphore
   tags: semaphore
-  pre_tasks:
-    - name: Install Ansible
-      action: '{{ ansible_pkg_mgr }}'
-      args:
-          name: ansible
-          state: present
   roles:
     - role: geerlingguy.mysql
     - role: VerosK.nginx
+    - role: local.semaphore
