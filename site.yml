@@ -26,3 +26,14 @@
     - role: geerlingguy.mysql
     - role: VerosK.nginx
     - role: local.semaphore
+
+- name: Disable SSH host key checking in demo
+  hosts: semaphore
+  tasks:
+    - name: Create ansible.cfg
+      # Don't do this in production, please
+      copy:
+        dest: '{{ semaphore_home }}/.ansible.cfg'
+        content: "[defaults]\nhost_key_checking = False\n"
+        owner: '{{ semaphore_user }}'
+        group: '{{ semaphore_user }}'
