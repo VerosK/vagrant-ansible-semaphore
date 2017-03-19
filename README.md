@@ -7,6 +7,9 @@ two machines `node1` and `node2` to play with.
  
 ## How to use:
 
+ * Checkout `git clone --recursive https://github.com/VerosK/vagrant-ansible-semaphore semaphore-poc`
+ * Enter the `semaphore-poc` directory
+
  * Start machines by `vagrant up`
  * Open http://192.168.49.40/ 
  * Login as: *admin* with password: *admin*
